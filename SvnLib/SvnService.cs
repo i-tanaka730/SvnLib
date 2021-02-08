@@ -1,36 +1,54 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 namespace SvnLib
 {
+	/// <summary>
+	/// SVNサービス
+	/// </summary>
 	public class SvnService
 	{
-		public static void Log()
+		/// <summary>
+		/// SVNログを出力する。
+		/// </summary>
+		/// <param name="arguments">パラメータ</param>
+		/// <param name="fileName">SVNファイルのパス</param>
+		public static void Log(string arguments, string fileName = "svn")
 		{
-			Process p = new Process();
-			p.StartInfo = new ProcessStartInfo("svn", "log --xml -v todo -l 5")
+			var p = new Process
 			{
-				CreateNoWindow = true, // コンソールを開かない
-				UseShellExecute = false, // シェル機能を使用しない
-				RedirectStandardOutput = true, // 標準出力をリダイレクト
-				StandardOutputEncoding = Encoding.UTF8 // 結果はUTF-8で来る
+				StartInfo = new ProcessStartInfo(fileName, arguments)
+				{
+					CreateNoWindow = true, // コンソールを開かない
+					UseShellExecute = false, // シェル機能を使用しない
+					RedirectStandardOutput = true, // 標準出力をリダイレクト
+					StandardOutputEncoding = Encoding.UTF8 // 結果はUTF-8で来る
+				}
 			};
-			p.Start(); // アプリの実行開始
+			p.Start();
 			p.WaitForExit();
-
-			XDocument doc = XDocument.Load(p.StandardOutput);
-			foreach (XElement entry in doc.Elements("log").Elements("logentry"))
+			var doc = XDocument.Load(p.StandardOutput);
+			foreach (var entry in doc.Elements("log").Elements("logentry"))
 			{
-				// revision 属性の取得
-				Console.Write("■r{0} ", entry.Attribute("revision").Value);
-				foreach (XElement msg in entry.Elements("msg"))
+				Console.Write("{0} : ", entry.Attribute("revision")?.Value);
+				foreach (var msg in entry.Elements("msg"))
 				{
 					Console.WriteLine(Regex.Replace(msg.Value, "\n(?!$)", "\r\n	"));
 				}
 			}
+		}
+
+		/// <summary>
+		/// Linuxから実行した場合、例外をスローするかを確認するためのテストメソッド
+		/// </summary>
+		/// <param name="fileName">SVNファイルのパス</param>
+		public static void LogError(string fileName = "svn")
+		{
+			Process.Start(fileName, "", new SecureString(), "");
 		}
 	}
 }

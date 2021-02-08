@@ -6,7 +6,17 @@ namespace SvnTest
 	{
 		static void Main(string[] args)
 		{
-			SvnService.Log();
+			if (args.Length > 1)
+			{
+				var arguments = args[0];
+				var fileName = args[1];
+				SvnService.Log(arguments, fileName);
+			}
+			else
+			{
+				var fileName = args[0];
+				SvnService.LogError(fileName);
+			}
 		}
 	}
 }
