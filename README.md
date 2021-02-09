@@ -2,7 +2,7 @@
 
 ## Overview
 
-An SVN library created with .Net Standard.
+An SVN library created with .Net Standard.  
 (This is a prototype for running .Net Standard on Linux.)
 
 ## Requirement
