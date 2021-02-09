@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Security;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 namespace SvnLib
@@ -17,28 +17,28 @@ namespace SvnLib
 		/// </summary>
 		/// <param name="arguments">パラメータ</param>
 		/// <param name="fileName">SVNファイルのパス</param>
-		public static void Log(string arguments, string fileName = "svn")
+		public static void Log(string arguments, string fileName)
 		{
-			var p = new Process
+			var process = new Process
 			{
 				StartInfo = new ProcessStartInfo(fileName, arguments)
 				{
-					CreateNoWindow = true, // コンソールを開かない
-					UseShellExecute = false, // シェル機能を使用しない
-					RedirectStandardOutput = true, // 標準出力をリダイレクト
-					StandardOutputEncoding = Encoding.UTF8 // 結果はUTF-8で来る
+					CreateNoWindow = true,
+					UseShellExecute = false,
+					RedirectStandardOutput = true,
+					StandardOutputEncoding = Encoding.UTF8
 				}
 			};
-			p.Start();
-			p.WaitForExit();
-			var doc = XDocument.Load(p.StandardOutput);
-			foreach (var entry in doc.Elements("log").Elements("logentry"))
+
+			process.Start();
+			process.WaitForExit();
+
+			var document = XDocument.Load(process.StandardOutput);
+			foreach (var entry in document.Elements("log").Elements("logentry"))
 			{
-				Console.Write("{0} : ", entry.Attribute("revision")?.Value);
-				foreach (var msg in entry.Elements("msg"))
-				{
-					Console.WriteLine(Regex.Replace(msg.Value, "\n(?!$)", "\r\n	"));
-				}
+				var revision = entry.Attribute("revision").Value;
+				var message = entry.Elements("msg").FirstOrDefault().Value;
+				Console.WriteLine("{0} : {1}", revision, message);
 			}
 		}
 
@@ -46,7 +46,7 @@ namespace SvnLib
 		/// Linuxから実行した場合、例外をスローするかを確認するためのテストメソッド
 		/// </summary>
 		/// <param name="fileName">SVNファイルのパス</param>
-		public static void LogError(string fileName = "svn")
+		public static void LogError(string fileName)
 		{
 			Process.Start(fileName, "", new SecureString(), "");
 		}
